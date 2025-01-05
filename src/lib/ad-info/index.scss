@@ -1,0 +1,58 @@
+@use '../../styles/variables' as *;
+.share-dialog {
+    .nut-dialog {
+        padding-top: 10px;
+    }
+    .nut-dialog-content {
+        margin-bottom: 10px;
+        & > view {
+            margin: 0;
+        }
+    }
+    &-footer {
+        width: 100%;
+        display: flex;
+  
+        &-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            &:first-child {
+                justify-content: flex-start;
+            }
+            &:last-child {
+                justify-content: flex-end;
+            }
+  
+            &-content {
+                width: 90%;
+                height: 34px;
+                color: #000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 14px;
+                overflow: hidden;
+                border-radius: 10px;
+                &.cancel{
+                    border: 1px solid $text-primary;
+                }
+                &.isOk{
+                    border: 1px solid $primary-color-2;
+                }
+                button{
+                    height: 100%;
+                    width: 100%;
+                    line-height: 30px;
+                    font-size: 14px;
+                    background: $primary-color-2;
+                    color: #fff;
+                }
+                .nut-button-round {
+                    border-radius: 0;
+                    border: none;
+                }
+            }
+        }
+    }
+}

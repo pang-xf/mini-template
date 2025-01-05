@@ -1,0 +1,63 @@
+@use '../../../styles/variables' as *;
+.to-share-dialog {
+    .nut-dialog {
+        padding-top: 0px;
+    }
+    .nut-dialog-content {
+        margin-bottom: 10px;
+        & > view {
+            margin: 0;
+        }
+    }
+    &-footer {
+        width: 100%;
+        display: flex;
+  
+        &-item {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+  
+            &-content {
+                width: 80%;
+                height: 32px;
+                color: #000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 14px;
+                overflow: hidden;
+                border-radius: 10px;
+                &.cancel{
+                    border: 1px solid $text-primary;
+                }
+                &.onOk{
+                    border: 1px solid $primary-color-2;
+                }
+                button{
+                    height: 100%;
+                    width: 100%;
+                    line-height: 30px;
+                    font-size: 14px;
+                    padding: 0;
+                    background: $primary-color-2;
+                    color: #fff;
+                }
+            }
+        }
+    }
+    &-wp{
+        &-top{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nut-cell {
+            font-size: 12px;
+            padding: 0 16px;
+            line-height: 24px;
+        }
+    }
+}
