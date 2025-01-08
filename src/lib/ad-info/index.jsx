@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
 import { View } from '@tarojs/components';
 import Taro, { eventCenter } from '@tarojs/taro'
-import { Dialog, Image, Button } from '@nutui/nutui-react-taro'
-import { Loading } from '@nutui/icons-react-taro';
-import { inject, observer } from 'mobx-react';
 import { isBeforeYesterday } from '../../utils';
-import './index.scss';
 
-const withAdInfo = (WrappedComponent, options = {}) => {
+const INITIAL_OPTIONS = () => ({
+    needNumberToShow: 0, // 限制使用几次后展示广告，与interval互斥
+    interval: 0, // 限制每次广告后有效功能的次数，与needNumberToShow互斥
+    locakKey: '', // 本地存储当前功能项key
+    asyncAction: false, // 是否异步前置操作（可减少用户等待时间）
+})
+const withAdInfo = (WrappedComponent, options = INITIAL_OPTIONS()) => {
     class AdInfoComponent extends Component {
         constructor(props) {
             super(props)
@@ -19,16 +21,17 @@ const withAdInfo = (WrappedComponent, options = {}) => {
         }
 
         componentDidMount() {
+            // 每天第一次打开清空限制
             this.judgeIsTimeOut();
             if (options.adUnitId) {
                 this.loadAd();
             }
-            eventCenter.on('downloadSuccess', this.handleAdSuccess);
+            eventCenter.on('wrappedCompSuccess', this.handleAdSuccess);
         }
         componentWillUnmount() {
             const { videoAd } = this.state;
             videoAd && videoAd.destroy();
-            eventCenter.off('downloadSuccess', this.handleAdSuccess);
+            eventCenter.off('wrappedCompSuccess', this.handleAdSuccess);
         }
         handleAdSuccess = () => {
             const { videoAd, adLooked } = this.state;
@@ -59,14 +62,11 @@ const withAdInfo = (WrappedComponent, options = {}) => {
             detailAdInfo = {
                 ...detailAdInfo,
                 time: new Date().getTime(),
-                // num: adLooked ? 0 : (detailAdInfo.num || 0) + 1
                 num: (detailAdInfo.num || 0) + 1
             }
             if (detailAdInfo.num > options.needNumberToShow) {
                 detailAdInfo.currentDayLooked = true;
             }
-            console.log('setLocalInfo', detailAdInfo)
-            console.log('setLocalInfo', detailAdInfo)
             Taro.setStorageSync(localKey, detailAdInfo);
         }
         loadAd = () => {
@@ -78,11 +78,9 @@ const withAdInfo = (WrappedComponent, options = {}) => {
                 this.setState({ videoAd })
             });
             videoAd.onError(err => {
-                console.log('videoAd.onError', err)
                 this.setState({ adLooked: true })
             });
             const handleClose = res => {
-                console.log('handleClose', res)
                 if (res.isEnded) {
                     _this.setState({ adLooked: true }, _this.handleAdSuccess)
                 } else {
@@ -125,12 +123,11 @@ const withAdInfo = (WrappedComponent, options = {}) => {
         onOk = () => {
             const { videoAd } = this.state;
             this.setState({ visible: false, adLooked: false })
-            // 触发下载
+            // 触发前置操作
             if (options.asyncAction) {
                 this.beforeAdFunc();
             }
             const _this = this
-            // if (videoAd && process.env.NODE_ENV !== 'development') {
             if (videoAd) {
                 videoAd.show().catch(() => {
                     // 失败重试
@@ -144,45 +141,6 @@ const withAdInfo = (WrappedComponent, options = {}) => {
             }
         }
         renderAdInfo = () => {
-            const { visible } = this.state;
-            const footer = <View className="share-dialog-footer">
-                <View className="share-dialog-footer-item" onClick={() => this.setState({ visible: false })}>
-                    <View className="share-dialog-footer-item-content cancel">取消</View>
-                </View>
-                <View className="share-dialog-footer-item" onClick={this.onOk}>
-                    <View className="share-dialog-footer-item-content isOk">
-                        <Button>确认</Button>
-                    </View>
-                </View>
-            </View>
-            return <Dialog
-                visible={visible}
-                title={'提示'}
-                className='share-dialog'
-                footer={footer}
-            >
-                <>
-                    <div
-                        style={{
-                            marginTop: '6px',
-                            marginBottom: '13px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Image
-                            loading={<Loading className="nut-icon-loading" />}
-                            src={'https://img.pxfe.top/v2/UJsql3p.png'}
-                            width={295}
-                            height={220}
-                            style={{ borderRadius: '8px' }}
-                        />
-                    </div>
-                </>
-            </Dialog>
-        }
-        renderAdInfo2 = () => {
             const _this = this;
             const { visible } = this.state;
             const cancel = () => {
@@ -217,7 +175,6 @@ const withAdInfo = (WrappedComponent, options = {}) => {
                     {...rest}
                     {...adProps}
                     ref={(node) => {
-                        // 同时更新到两个 ref
                         this.wrappedCompRef.current = node;
                         if (ref) {
                             if (typeof ref === 'function') {
@@ -235,11 +192,6 @@ const withAdInfo = (WrappedComponent, options = {}) => {
     return React.forwardRef((props, ref) => {
         return <AdInfoComponent {...props} forwardedRef={ref} />;
     });
-}
-
-const withAdInfoHOC = (WrappedComponent, options = {}) => {
-    const EnhancedComponent = withAdInfo(WrappedComponent, options);
-    return inject('mainStore')(observer(EnhancedComponent));
 }
 
 export default withAdInfo;
