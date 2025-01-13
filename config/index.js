@@ -87,7 +87,8 @@ export default defineConfig(async (merge, { command, mode }) => {
             generateScopedName: '[name]__[local]___[hash:base64:5]'
           }
         }
-      }
+      },
+      esnextModules: ["@taroify"],
     },
     rn: {
       appName: 'taroDemo',
